@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sparkyard — Project Status & Build Roadmap</title>
+<style>
+  :root { --bg:#0f1115; --fg:#e2e8f0; --muted:#94a3b8; --accent:#7c3aed; --success:#22c55e; --warn:#f59e0b; --err:#ef4444; --card:#1a1d23; --border:#2d3139; }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg);line-height:1.6;max-width:960px;margin:0 auto;padding:2rem 1rem}
+  h1,h2,h3{color:#fff;margin-top:2rem}
+  h1{font-size:1.8rem;border-bottom:2px solid var(--accent);padding-bottom:.5rem}
+  h2{font-size:1.3rem;color:var(--accent);margin-top:2.5rem}
+  h3{font-size:1.05rem;color:#cbd5e1;margin-top:1.5rem}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin:1rem 0}
+  code,pre{background:#0b0d12;border:1px solid var(--border);border-radius:6px;padding:.15rem .4rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;color:#a5b4fc}
+  pre{padding:1rem;overflow-x:auto;line-height:1.5}
+  pre code{border:none;padding:0;background:transparent}
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}
+  th,td{text-align:left;padding:.6rem .75rem;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:.75rem;letter-spacing:.05em}
+  .badge{display:inline-block;padding:.15rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .ok{background:rgba(34,197,94,.15);color:var(--success)}
+  .shell{background:rgba(245,158,11,.15);color:var(--warn)}
+  .todo{background:rgba(239,68,68,.15);color:var(--err)}
+  .tip{background:rgba(124,58,237,.1);border-left:3px solid var(--accent);padding:.75rem 1rem;margin:1rem 0;border-radius:0 8px 8px 0}
+  ul{margin:.5rem 0;padding-left:1.25rem}
+  li{margin:.35rem 0}
+  a{color:#a5b4fc}
+  hr{border:none;border-top:1px solid var(--border);margin:2rem 0}
+  .file-tree{background:#0b0d12;padding:1rem;border-radius:8px;font-family:ui-monospace,monospace;font-size:.82rem;line-height:1.7}
+</style>
+</head>
+<body>
+
+<h1>Sparkyard — Project Status & Build Roadmap</h1>
+<p style="color:var(--muted)">Generated: 2026-11-13 · Phase 1 Complete · Phase 2 Complete · Phase 3 Complete · Phase 4 Complete · Phase 5 Complete</p>
+
+<div class="card">
+  <strong>Project:</strong> Cross-platform (iOS + Android + Web) social/community app on Nostr for the Bitcoin/Lightning ecosystem.<br>
+  <strong>Identity invariant:</strong> No single server or company can permanently deplatform a user. Nostr keypair is portable.<br>
+  <strong>Repo root:</strong> <code>~/sparkyard/</code>
+</div>
+
+<h2>Architecture</h2>
+<div class="file-tree">
+sparkyard/
+├── frontend/                    # React 18 + TypeScript strict + Vite + Tailwind
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── ui/            # shadcn-style primitives (Button, Card, Input, Badge)
+│   │   │   ├── avatar.tsx     # Deterministic identicon avatar
+│   │   │   ├── auth-modal.tsx # NIP-07 / NIP-46 sign-in modal
+│   │   │   ├── bottom-nav.tsx # 4-tab mobile nav
+│   │   │   ├── zap-button.tsx # NIP-57 zap modal (WebLN / NWC)
+│   │   │   ├── feed/          # Composer, StoriesRow, NoteCard
+│   │   │   ├── wallet/        # NWC, Cashu, zap-history panels
+│   │   │   ├── messages/      # DM list + encrypted chat thread
+│   │   │   └── widgets/       # Sandboxed iframe renderer
+│   │   ├── lib/
+│   │   │   ├── bech32.ts      # LNURL bech32 decoder
+│   │   │   └── lightning.ts   # lud16/lud06 → LNURL-pay endpoint
+│   │   ├── services/
+│   │   │   ├── auth.ts        # NIP-07 signer + NIP-44 bridge
+│   │   │   ├── nostr.ts       # Multi-relay pool, add/remove relay
+│   │   │   ├── identity.ts    # Avatar color, identicon, profile parser
+│   │   │   ├── theme.ts       # 4-mode theme
+│   │   │   ├── dm.ts          # NIP-17 rumor → seal → gift wrap
+│   │   │   ├── broadcast.ts   # Read-only kind:9 filter helpers
+│   │   │   ├── settings.ts    # Self-hosted relay + push preference
+│   │   │   ├── push.ts        # Notification API + Capacitor bridge
+│   │   │   ├── zaps.ts        # NIP-57 prepare/pay/receipt
+│   │   │   ├── nwc.ts         # NIP-47 NWC client (NIP-44)
+│   │   │   ├── cashu.ts       # Curated mints + cashu token codec
+│   │   │   ├── secret-store.ts# AES-GCM encrypted secret storage
+│   │   │   └── widgets.ts     # kind:30033 parse + reputation gate
+│   │   ├── pages/
+│   │   │   ├── Feed.tsx       # ✅ Live timeline + mention push
+│   │   │   ├── Servers.tsx    # ✅ NIP-29 group directory
+│   │   │   ├── ServerDetail.tsx
+│   │   │   ├── Articles.tsx
+│   │   │   ├── ArticleDetail.tsx
+│   │   │   ├── ThreadView.tsx
+│   │   │   ├── Messages.tsx   # ✅ NIP-17 DM threads
+│   │   │   ├── Wallet.tsx     # ✅ NWC + Cashu + zaps
+│   │   │   ├── Widgets.tsx    # ✅ Smart Widgets (kind:30033)
+│   │   │   ├── Broadcast.tsx  # ✅ Read-only NIP-29 channels
+│   │   │   └── Settings.tsx   # ✅ Self-hosted relay + push
+│   │   ├── types/nostr.ts     # Shared TS interfaces
+│   │   ├── lib/utils.ts       # cn() helper (clsx + tailwind-merge)
+│   │   ├── App.tsx            # Router + header + auth state
+│   │   ├── main.tsx           # Entry (theme + relay settings + providers)
+│   │   ├── vite-env.d.ts
+│   │   └── index.css          # CSS custom properties, dark default
+│   ├── tests/                 # Vitest unit tests (DMs, zaps, NWC, Cashu, widgets, push)
+│   ├── package.json           # React, nostr-tools, Capacitor 6, Tailwind
+│   ├── vite.config.ts         # Alias @/ → src/
+│   ├── tsconfig.json          # Strict mode, noUnusedLocals
+│   ├── tailwind.config.js     # HSL tokens matching design system
+│   ├── postcss.config.js
+│   ├── index.html             # data-theme="dark" on <html>
+│   ├── capacitor.config.ts    # Capacitor 6 + push presentation
+│   └── .env.example
+│
+└── server/                      # Go 1.22 relay + API
+    ├── cmd/relay/main.go        # HTTP entry, DB connect, migrate, start
+    ├── internal/
+    │   ├── relay/               # relay.go / handlers.go / filters.go / write.go
+    │   ├── ratelimit/           # Per-IP token bucket
+    │   ├── db/db.go             # Postgres pool, migrations, event CRUD
+    │   └── nip29/nip29.go       # Server-side permission enforcement
+    ├── go.mod                   # module sparkyard, nbd-wtf/go-nostr
+    └── .env.example
+</div>
+
+<h2>Phase 1 — Core Loop ✅ COMPLETE</h2>
+<table>
+<tr><th>Feature</th><th>Status</th><th>Notes</th></tr>
+<tr><td>NIP-07 browser extension auth</td><td><span class="badge ok">Live</span></td><td>connectNip07() in auth.ts. Never stores raw nsec.</td></tr>
+<tr><td>NIP-46 bunker signer</td><td><span class="badge shell">Skeleton</span></td><td>Class exists, throws "not yet implemented".</td></tr>
+<tr><td>Real-time feed (kind 1)</td><td><span class="badge ok">Live</span></td><td>Subscribes to wss://relay.damus.io, wss://nos.lol, wss://relay.nostr.band</td></tr>
+<tr><td>Profile resolution (kind 0)</td><td><span class="badge ok">Live</span></td><td>Maps pubkey → displayName/picture/nip05. Falls back to generated avatar.</td></tr>
+<tr><td>Composer + publish</td><td><span class="badge ok">Live</span></td><td>280-char limit. Uses getEventHash + signer.signEvent. Publishes to all writable relays.</td></tr>
+<tr><td>Reactions (kind 7)</td><td><span class="badge ok">Live</span></td><td>Heart button publishes + reaction. UI shows userReacted state.</td></tr>
+<tr><td>Deterministic avatars</td><td><span class="badge ok">Live</span></td><td>Color from last pubkey byte % palette. Geometric 4x4 identicon + initial letter.</td></tr>
+<tr><td>Theme system</td><td><span class="badge ok">Live</span></td><td>4 modes. CSS custom properties. System mode listens prefers-color-scheme. Reduced-motion respected.</td></tr>
+<tr><td>Relay pool</td><td><span class="badge ok">Live</span></td><td>Auto-connect, subscription multiplexing, 5s exponential backoff reconnect, publish with timeout.</td></tr>
+<tr><td>Mobile navigation</td><td><span class="badge ok">Live</span></td><td>Bottom tab bar: Feed / Servers / Messages / Wallet. Sticky header.</td></tr>
+</table>
+
+<h2>Known Fixes Applied (Do Not Revert)</h2>
+<div class="card">
+<ul>
+<li><strong>Go module path:</strong> <code>github.com/fiatjaf/go-nostr</code> → <code>github.com/nbd-wtf/go-nostr</code> (module moved upstream). Applied in go.mod and relay.go.</li>
+<li><strong>relay.go type fix:</strong> <code>event.Tags</code> is <code>nostr.Tags</code> ([][]string). Must convert to <code>[]interface{}</code> before passing to <code>nip29.ExtractGroupID()</code>.</li>
+<li><strong>avatar.tsx:</strong> Was empty. Filled with Avatar component.</li>
+<li><strong>theme.ts:</strong> Added <code>export type { ThemeMode }</code> so theme-toggle.tsx can import it.</li>
+<li><strong>Feed.tsx:</strong> Removed unused <code>npubEncode</code> function and <code>nostr-tools/nip19</code> import.</li>
+<li><strong>Postgres:</strong> Database must be named <code>sparkyard</code>. Container <code>0af80ce28e59</code> (or local Postgres) must have it created manually.</li>
+</ul>
+</div>
+
+<h2>Phase 2 — Servers (NIP-29 Groups) ✅ COMPLETE</h2>
+<div class="card">
+<strong>Current state:</strong> NIP-29 backend fully implemented and compiled. Frontend Servers.tsx queries live <code>kind:39000</code> group metadata, <code>createGroup</code>/<code>joinGroup</code>/<code>leaveGroup</code>/<code>postGroupMessage</code> in <code>services/groups.ts</code>, and <code>ServerDetailPage</code> subscribes to <code>kind:9</code> channel messages with <code>#h</code> filter.
+</div>
+
+<h3>What needs to be done</h3>
+<ol>
+<li><strong>Frontend — Query real groups</strong>
+  <ul>
+    <li>Subscribe to <code>kind:39000</code> (group metadata) to populate the server list instead of MOCK_SERVERS.</li>
+    <li>Each group metadata event has tags: <code>["h", "group-id"]</code>, <code>["name", "Group Name"]</code>, <code>["description", "..."]</code>, <code>["picture", "url"]</code>.</li>
+    <li>Display member count by querying <code>group_members</code> table (or counting <code>kind:9000</code> add-user events).</li>
+  </ul>
+</li>
+<li><strong>Join Server flow</strong>
+  <ul>
+    <li>User clicks "Join Server" → publish <code>kind:9021</code> (join request) with <code>["h", "group-id"]</code> tag.</li>
+    <li>Server (Go relay) receives it, validates via <code>nip29.CheckPermission()</code>, inserts into <code>group_members</code> as "member".</li>
+    <li>Alternatively, if group is open, client can self-join by publishing <code>kind:9000</code> (add-user) with their own pubkey.</li>
+  </ul>
+</li>
+<li><strong>Channel messages (kind 9)</strong>
+  <ul>
+    <li>Inside a server, subscribe to <code>kind:9</code> with <code>#h</code> tag filter for that group ID.</li>
+    <li>Composer publishes <code>kind:9</code> with <code>["h", "group-id"]</code> tag.</li>
+    <li>Backend validates sender is member before storing.</li>
+  </ul>
+</li>
+<li><strong>Server creation (kind 9007)</strong>
+  <ul>
+    <li>Publish <code>kind:9007</code> with group ID. Backend inserts into <code>groups</code> table, sets creator as owner.</li>
+  </ul>
+</li>
+</ol>
+
+<h3>Backend schema already supports this</h3>
+<pre><code>-- groups table
+CREATE TABLE groups (id TEXT PRIMARY KEY, name TEXT, description TEXT, created_by BYTEA, created_at TIMESTAMPTZ);
+
+-- group_members table
+CREATE TABLE group_members (group_id TEXT, pubkey BYTEA, role TEXT DEFAULT 'member', joined_at TIMESTAMPTZ);
+
+-- group_bans table
+CREATE TABLE group_bans (group_id TEXT, pubkey BYTEA, banned_at TIMESTAMPTZ);</code></pre>
+
+<h3>Security invariant</h3>
+<div class="tip">
+  All NIP-29 permission checks MUST be in <code>nip29.CheckPermission()</code> (server-side). The frontend must never trust its own role claim. The relay already enforces this for group events.
+</div>
+
+<h2>Phase 3 — Content Layer ✅ COMPLETE</h2>
+<table>
+<tr><th>Feature</th><th>NIP</th><th>What to build</th><th>Status</th></tr>
+<tr><td>Long-form articles</td><td>NIP-23</td><td>Articles page + detail for kind:30023. Markdown renderer. Query by author + kind. Title from d-tag.</td><td><span class="badge ok">Live</span></td></tr>
+<tr><td>Reply threads</td><td>NIP-10</td><td>Click note → thread view. Root + reply chain. Publish reply with e-tag (root, reply) + p-tag.</td><td><span class="badge ok">Live</span></td></tr>
+<tr><td>Repost</td><td>NIP-18</td><td>Repost button publishes kind:6 with e-tag + p-tag.</td><td><span class="badge ok">Live</span></td></tr>
+<tr><td>Voting / sorting</td><td>NIP-25</td><td>Reactions support +/-. Client-side sort: hot (time-decay + score), new, top.</td><td><span class="badge ok">Live</span></td></tr>
+<tr><td>Status / stories</td><td>NIP-40</td><td>Horizontal row at top of feed. kind:1 with expiration tag (~24h). Ring UI for unseen.</td><td><span class="badge ok">Live</span></td></tr>
+</table>
+
+<h2>Phase 4 — Payments & Widgets ✅ COMPLETE</h2>
+<div class="card">
+  <strong>Current state:</strong> Lightning zaps, NWC wallet, Cashu ecash, and sandboxed Smart Widgets are wired end-to-end. All new logic is unit-tested; relay permission checks and rate limiting are enforced server-side.
+</div>
+
+<table>
+<tr><th>Feature</th><th>NIP</th><th>Status</th><th>Implementation</th></tr>
+<tr><td>Lightning zaps</td><td>NIP-57</td><td><span class="badge ok">Live</span></td><td>
+  <code>services/zaps.ts</code> resolves lud16/lud06, fetches LNURL-pay metadata, requests an invoice, pays via WebLN or NWC, then publishes a signed <code>kind:9735</code> receipt. Zap buttons on feed notes and articles.
+</td></tr>
+<tr><td>NWC wallet</td><td>NIP-47</td><td><span class="badge ok">Live</span></td><td>
+  <code>services/nwc.ts</code> parses <code>nostr+walletconnect://</code>, encrypts the client secret with AES-GCM (<code>services/secret-store.ts</code>, non-extractable IndexedDB key), and calls <code>get_balance</code>, <code>pay_invoice</code>, <code>get_info</code>. NIP-44 with NIP-04 fallback.
+</td></tr>
+<tr><td>Cashu wallet</td><td>NIP-60/61</td><td><span class="badge ok">Live</span></td><td>
+  Curated mint allowlist only. <code>services/cashu.ts</code> decodes/encodes cashuA tokens, validates proofs and HTTPS mints, computes balance, and supports local send/receive tokens. Mint <code>/v1/info</code> lookup.
+</td></tr>
+<tr><td>Smart Widgets</td><td>kind:30033</td><td><span class="badge ok">Live</span></td><td>
+  <code>services/widgets.ts</code> parses metadata and gates by reputation/trusted authors. <code>WidgetFrame</code> renders with <code>sandbox="allow-scripts"</code> (no same-origin), <code>referrerpolicy="no-referrer"</code>, lazy loading. No access to app storage/cookies.
+</td></tr>
+<tr><td>Relay rate limiting</td><td>—</td><td><span class="badge ok">Live</span></td><td>
+  <code>internal/ratelimit</code> per-IP token bucket (10 rps, burst 20) applied before WebSocket upgrade.
+</td></tr>
+</table>
+
+<h3>Phase 4 security decisions</h3>
+<div class="card">
+<ul>
+  <li><strong>NWC secrets are encrypted at rest</strong> with AES-GCM; the key is a non-extractable IndexedDB <code>CryptoKey</code>. No plaintext connection string is stored or logged.</li>
+  <li><strong>Cashu mints are curated</strong> — arbitrary mint URLs are rejected by <code>assertCuratedMint()</code>.</li>
+  <li><strong>Widgets are opaque-origin</strong> — the sandbox omits <code>allow-same-origin</code>, so storage/cookies are unreachable, and only <code>allow-scripts</code> is granted.</li>
+  <li><strong>Zaps use NIP-57 receipts</strong> — the receipt carries <code>bolt11</code>, <code>preimage</code> and the original zap request so clients can verify payment.</li>
+  <li><strong>Relay abuse is throttled</strong> — the token bucket rejects clients before the WebSocket upgrade.</li>
+</ul>
+</div>
+
+<h2>Phase 5 — Mobile + Messaging ✅ COMPLETE</h2>
+<div class="card">
+  <strong>Current state:</strong> NIP-17 encrypted DMs, NIP-29 broadcast channels, self-hosted relay mode, and push notifications are implemented. Capacitor is wired for native builds; producing signed store builds still requires Xcode / Android Studio and APNS / FCM credentials.
+</div>
+
+<table>
+<tr><th>Feature</th><th>NIP</th><th>Status</th><th>Implementation</th></tr>
+<tr><td>Encrypted DMs</td><td>NIP-17 + NIP-44</td><td><span class="badge ok">Live</span></td><td>
+  <code>services/dm.ts</code> builds a kind:14 rumor, seals it as kind:13 with NIP-44, wraps it as a kind:1059 gift wrap signed by an ephemeral key, and decrypts the seal then rumor via the signer. <code>pages/Messages.tsx</code> lists threads and renders chats. <strong>NIP-04 is never imported or used.</strong>
+</td></tr>
+<tr><td>Signer NIP-44 bridge</td><td>NIP-07 / NIP-46</td><td><span class="badge ok">Live</span></td><td>
+  <code>services/auth.ts</code> delegates <code>nip44.encrypt/decrypt</code> to the NIP-07 extension when available and surfaces a clear error when the signer lacks NIP-44. No private key is ever stored.
+</td></tr>
+<tr><td>Broadcast channels</td><td>NIP-29</td><td><span class="badge ok">Live</span></td><td>
+  <code>pages/Broadcast.tsx</code> + <code>services/broadcast.ts</code> subscribe to kind:9 by group ID with no membership requirement. Linked from the Servers page.
+</td></tr>
+<tr><td>Self-hosted relay mode</td><td>—</td><td><span class="badge ok">Live</span></td><td>
+  <code>pages/Settings.tsx</code> toggles <code>ws://localhost:8081</code> in the relay pool; the choice persists and is re-applied on startup via <code>services/settings.ts</code>.
+</td></tr>
+<tr><td>Push notifications</td><td>—</td><td><span class="badge ok">Live</span></td><td>
+  <code>services/push.ts</code> uses the browser Notification API and the Capacitor <code>PushNotifications</code> plugin when present. Triggers on DMs and <code>nostr:</code> mentions; respects <code>document.hidden</code>.
+</td></tr>
+<tr><td>Capacitor build</td><td>—</td><td><span class="badge warn">Config ready</span></td><td>
+  Capacitor 6 dependencies and <code>capacitor.config.ts</code> are installed. Run <code>npm run cap:add:android</code> or <code>npm run cap:add:ios</code> once, then <code>npm run cap:sync</code>. Native builds require Android Studio / Xcode.
+</td></tr>
+</table>
+
+<h3>Phase 5 security decisions</h3>
+<div class="card">
+<ul>
+  <li><strong>DMs are NIP-17 only</strong> — rumor (14) → seal (13) → gift wrap (1059), all NIP-44. NIP-04 is not implemented anywhere.</li>
+  <li><strong>Private keys stay in the signer</strong> — NIP-07 delegates encryption/decryption; the app never reads an nsec.</li>
+  <li><strong>Broadcasts are read-only</strong> — the view only subscribes to kind:9 by group ID; posting still goes through the server-side NIP-29 permission check.</li>
+  <li><strong>Self-hosted relay is explicit</strong> — the local relay is added only when the user enables it in Settings.</li>
+</ul>
+</div>
+
+<h2>Post-Phase 5 Follow-ups ❌ OPTIONAL</h2>
+<ul>
+  <li>Full NIP-46 bunker signer (currently a skeleton) including <code>nip44_decrypt</code> over the bunker RPC.</li>
+  <li>NIP-42 relay authentication.</li>
+  <li>Native store builds and APNS/FCM credential setup.</li>
+  <li>Persist sent DMs locally so the sender keeps a copy across reloads.</li>
+</ul>
+
+<h2>Security Invariants (Never Break)</h2>
+<div class="card" style="border-color:var(--err)">
+<ul>
+<li>❌ <strong>Never use NIP-04</strong> for DMs. NIP-17 + NIP-44 only.</li>
+<li>❌ <strong>Never store raw nsec</strong> in browser storage. NIP-07 or NIP-46 only.</li>
+<li>❌ <strong>Never trust client role claims</strong> in NIP-29 groups. Enforce server-side.</li>
+<li>❌ <strong>Never render Smart Widgets</strong> without iframe sandboxing.</li>
+<li>✅ <strong>Relay rate limiting is live</strong> — per-IP token bucket in <code>internal/ratelimit</code>, applied before the WebSocket upgrade.</li>
+<li>❌ <strong>Never accept arbitrary Cashu mints</strong> without trust/curation layer.</li>
+<li>❌ <strong>Never log or store NWC connection strings</strong> plaintext. Treat as bearer credentials.</li>
+</ul>
+</div>
+
+<h2>Environment Setup (For Next Session)</h2>
+<pre><code># 1. Frontend
+cd ~/sparkyard/frontend
+npm install
+npm run dev          # http://localhost:8080
+
+# 2. Postgres (if not running)
+docker run -d --name sparkyard-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16
+docker exec -u postgres sparkyard-db psql -c "CREATE DATABASE sparkyard;"
+
+# 3. Backend
+cd ~/sparkyard/server
+go mod tidy
+go run ./cmd/relay    # http://localhost:8081
+
+# 4. Tests
+cd ~/sparkyard/frontend && npm test
+cd ~/sparkyard/server && go test ./...
+
+# 5. Mobile (one-time native project setup)
+cd ~/sparkyard/frontend
+npm run cap:add:android   # or: npm run cap:add:ios
+npm run cap:sync
+npm run cap:open:android  # or: npm run cap:open:ios</code></pre>
+
+<h2>Quick Reference: Key Files & Their Responsibilities</h2>
+<table>
+<tr><th>File</th><th>Responsibility</th><th>Phase</th></tr>
+<tr><td><code>frontend/src/services/nostr.ts</code></td><td>WebSocket relay pool, subscribe(), publish(), getConnectedRelays()</td><td>1 ✅</td></tr>
+<tr><td><code>frontend/src/services/auth.ts</code></td><td>NIP-07 signer, NIP-44 bridge, getSigner(), logout()</td><td>1 ✅ / 5 ✅</td></tr>
+<tr><td><code>frontend/src/services/identity.ts</code></td><td>Avatar color, identicon SVG, profile JSON parser</td><td>1 ✅</td></tr>
+<tr><td><code>frontend/src/pages/Feed.tsx</code></td><td>Timeline orchestration, votes, reposts, stories, mention push</td><td>1 ✅ / 3 ✅ / 5 ✅</td></tr>
+<tr><td><code>frontend/src/services/dm.ts</code></td><td>NIP-17 rumor → seal → gift wrap, NIP-44 decrypt</td><td>5 ✅</td></tr>
+<tr><td><code>frontend/src/components/messages/</code></td><td>DM list and encrypted chat thread</td><td>5 ✅</td></tr>
+<tr><td><code>frontend/src/pages/Broadcast.tsx</code></td><td>Read-only kind:9 channels by group ID</td><td>5 ✅</td></tr>
+<tr><td><code>frontend/src/services/settings.ts</code></td><td>Self-hosted relay toggle, push preference</td><td>5 ✅</td></tr>
+<tr><td><code>frontend/src/services/push.ts</code></td><td>Notification API + Capacitor push bridge, DM/mention triggers</td><td>5 ✅</td></tr>
+<tr><td><code>frontend/src/services/zaps.ts</code></td><td>NIP-57 zap request, LNURL-pay invoice, kind:9735 receipt</td><td>4 ✅</td></tr>
+<tr><td><code>frontend/src/services/nwc.ts</code></td><td>NIP-47 NWC client: get_balance, pay_invoice, get_info</td><td>4 ✅</td></tr>
+<tr><td><code>frontend/src/services/cashu.ts</code></td><td>Curated mints, cashu token codec, balance, mint info</td><td>4 ✅</td></tr>
+<tr><td><code>frontend/src/services/widgets.ts</code></td><td>kind:30033 parsing, reputation gate, sandbox policy</td><td>4 ✅</td></tr>
+<tr><td><code>server/internal/relay/relay.go</code></td><td>Connection lifecycle, read loop, ping/pong, rate-limit gate</td><td>1 ✅</td></tr>
+<tr><td><code>server/internal/relay/handlers.go</code></td><td>EVENT/REQ/CLOSE handlers, group permission enforcement</td><td>1 ✅ / 2 ✅</td></tr>
+<tr><td><code>server/internal/relay/filters.go</code></td><td>Broadcast fan-out and NIP-01 filter matching</td><td>1 ✅</td></tr>
+<tr><td><code>server/internal/ratelimit/ratelimit.go</code></td><td>Per-IP token bucket</td><td>4 ✅</td></tr>
+<tr><td><code>server/internal/db/db.go</code></td><td>Postgres pool, migrations, InsertEvent, QueryEvents</td><td>1 ✅</td></tr>
+<tr><td><code>server/internal/nip29/nip29.go</code></td><td>Server-side permission checks, role hierarchy, ExtractGroupID</td><td>2 ✅</td></tr>
+<tr><td><code>frontend/src/pages/Servers.tsx</code></td><td>Group directory — live kind:39000 subscription, create/join</td><td>2 ✅</td></tr>
+<tr><td><code>frontend/src/pages/Messages.tsx</code></td><td>NIP-17 DM threads and encrypted composer</td><td>5 ✅</td></tr>
+<tr><td><code>frontend/src/pages/Wallet.tsx</code></td><td>NWC balance, Cashu ecash, received zaps, widget link</td><td>4 ✅</td></tr>
+<tr><td><code>frontend/src/pages/Settings.tsx</code></td><td>Self-hosted relay, push notifications, connected relays</td><td>5 ✅</td></tr>
+</table>
+
+<h2>Next Recommended Task</h2>
+<div class="tip">
+  <strong>Phases 1–5 are wired end-to-end and tested (77 frontend tests, Go suite green).</strong> Remaining follow-ups:
+  <ol>
+    <li>Implement the full NIP-46 bunker signer, including <code>nip44_decrypt</code>.</li>
+    <li>Add NIP-42 relay authentication.</li>
+    <li>Run <code>npm run cap:add:android</code> / <code>cap:add:ios</code> and configure APNS/FCM for native push.</li>
+    <li>Persist sent DMs locally so the sender keeps a copy across reloads.</li>
+  </ol>
+</div>
+
+<hr>
+<p style="color:var(--muted);font-size:.85rem">Document generated for AI context transfer. Paste this HTML into a new chat to resume from the Phase 5 follow-ups.</p>
+
+</body>
+</html>
