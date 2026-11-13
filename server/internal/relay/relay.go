@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,6 +51,17 @@ func New(pool *db.Pool) *Relay {
 }
 
 func clientIP(req *http.Request) string {
+	if xff := req.Header.Get("X-Forwarded-For"); xff != "" {
+		if comma := strings.IndexByte(xff, ','); comma >= 0 {
+			xff = xff[:comma]
+		}
+		if ip := strings.TrimSpace(xff); ip != "" {
+			return ip
+		}
+	}
+	if ip := strings.TrimSpace(req.Header.Get("X-Real-IP")); ip != "" {
+		return ip
+	}
 	host, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
 		return req.RemoteAddr
@@ -65,6 +77,13 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if !websocket.IsWebSocketUpgrade(req) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUpgradeRequired)
+		_, _ = w.Write([]byte(`{"error":"websocket upgrade required"}`))
+		return
+	}
+
 	if !r.limiter.Allow(clientIP(req)) {
 		http.Error(w, "rate limited", http.StatusTooManyRequests)
 		return
@@ -72,7 +91,6 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer ws.Close()
